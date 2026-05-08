@@ -1,11 +1,44 @@
-<div align="center">
+# Nexus Apparel - Дипломный проект (Full-Stack Next.js + SQLite)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Проект представляет собой современный интернет-магазин спортивной одежды, построенный полностью на Next.js с использованием локальной базы данных SQLite.
 
-  <h1>Built with AI Studio</h2>
+## Технологический стек
+- **Frontend/Backend**: Next.js 15 (App Router & API Routes).
+- **Database**: SQLite 3 (интегрирована через `better-sqlite3`).
+- **Styling**: Tailwind CSS 4.
+- **Animations**: Motion (Framer Motion).
+- **Design**: Adidas-style / Minimalist Premium.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Структура проекта для отчета
+- `/app`: Страницы и API роуты.
+  - `api/products/route.ts`: API эндпоинт для получения товаров из БД.
+- `/lib/db.ts`: Конфигурация и инициализация SQLite.
+- `/scripts/seed-sqlite.ts`: Скрипт для заполнения БД тестовыми данными.
+- `nexus_app.db`: Файл базы данных SQLite.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Быстрый запуск
 
-</div>
+### 1. Установка
+```bash
+npm install
+```
+
+### 2. Подготовка базы данных
+Заполните базу данных реальными товарами (20+ позиций):
+```bash
+npm run seed
+```
+
+### 3. Запуск сайта
+```bash
+npm run dev
+```
+Сайт будет доступен по адресу `http://localhost:3000`.
+
+---
+
+## Особенности:
+1. **Чистая архитектура**: Всё в одном проекте на Next.js.
+2. **Реальные товары**: База данных содержит реальные кроссовки, худи и аксессуары с изображениями.
+3. **Анимации**: Плавные визуальные эффекты при скролле и наведении.
+4. **Адаптивность**: Полная поддержка мобильных устройств.
