@@ -23,7 +23,7 @@ export default function ProductCarousel({ eyebrow, title, products, href = '/pro
   return (
     <section className="py-14 sm:py-20">
       <div className="mx-auto max-w-screen-2xl px-4 md:px-8">
-        <div className="flex items-end justify-between gap-4"><SectionHeader eyebrow={eyebrow} title={title} href={href} /><div className="mb-10 hidden items-center gap-2 lg:flex"><button onClick={() => scroll('left')} className="rounded-full border border-slate-200 px-4 py-3 transition hover:bg-violet-50">‹</button><button onClick={() => scroll('right')} className="rounded-full border border-slate-200 px-4 py-3 transition hover:bg-violet-50">›</button></div></div>
+        <div className="flex items-end justify-between gap-4"><SectionHeader eyebrow={eyebrow} title={title} href={href} /><div className="mb-10 hidden items-center gap-2 lg:flex"><button aria-label="Прокрутить товары назад" onClick={() => scroll('left')} className="rounded-full border border-slate-300 px-4 py-3 text-black transition hover:bg-violet-50">‹</button><button aria-label="Прокрутить товары вперед" onClick={() => scroll('right')} className="rounded-full border border-slate-300 px-4 py-3 text-black transition hover:bg-violet-50">›</button></div></div>
         <div ref={scrollRef} className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 sm:gap-6">{products.map(product => <div key={product.id} className="w-[76vw] flex-none snap-start sm:w-[330px] lg:w-[300px] xl:w-[330px]"><ProductCard product={product} /></div>)}</div>
       </div>
     </section>
