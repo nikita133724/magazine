@@ -45,7 +45,8 @@ export default function HomePage() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setFeaturedProducts(data.slice(0, 8));
-      });
+      })
+      .catch(e => console.error('Error fetching featured products:', e));
   }, []);
 
   return (
@@ -132,6 +133,7 @@ export default function HomePage() {
             fill
             className="w-full h-full object-cover grayscale brightness-50 contrast-125"
             priority
+            referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/10"></div>
         </motion.div>
@@ -262,6 +264,7 @@ export default function HomePage() {
                 alt={cat.name} 
                 fill
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="absolute bottom-10 left-10 flex flex-col items-start gap-4">
