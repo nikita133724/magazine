@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'NexusStore | Smart E-Commerce',
-  description: 'Full-stack thesis project with Next.js and Django',
+  title: 'Nexus Apparel | Smart E-Commerce',
+  description: 'Full-stack thesis project with Next.js API routes and SQLite',
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} dark`}>
+    <html lang="ru" className={inter.variable}>
       <body className="bg-white text-black font-sans antialiased" suppressHydrationWarning>
         <AppProvider>
           {children}
