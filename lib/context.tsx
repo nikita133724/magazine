@@ -1,14 +1,17 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 type Language = 'RU' | 'KZ';
 
-interface CartItem {
+interface CartProduct {
   id: number;
   name: string;
   price: number;
   image: string;
+}
+
+interface CartItem extends CartProduct {
   quantity: number;
 }
 
@@ -16,14 +19,12 @@ interface AppContextType {
   lang: Language;
   setLang: (lang: Language) => void;
   cart: CartItem[];
-  addToCart: (product: any) => void;
+  addToCart: (product: CartProduct) => void;
   removeFromCart: (id: number) => void;
-  t: (key: string) => string;
+  t: (key: TranslationKey) => string;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
 }
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const translations = {
   RU: {
@@ -78,6 +79,7 @@ const translations = {
     men_clothing: 'Мужская одежда',
     women_clothing: 'Женская одежда',
     new_arrivals_footer: 'Новинки',
+    loading: 'Загрузка',
   },
   KZ: {
     hero: 'ШЕКТЕН ШЫҚ',
@@ -131,49 +133,81 @@ const translations = {
     men_clothing: 'Ерлер киімі',
     women_clothing: 'Әйелдер киімі',
     new_arrivals_footer: 'Жаңа тауарлар',
+    loading: 'Жүктелуде',
+  },
+} as const;
+
+type TranslationKey = keyof typeof translations.RU;
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+function isLanguage(value: unknown): value is Language {
+  return value === 'RU' || value === 'KZ';
+}
+
+function isCartItem(value: unknown): value is CartItem {
+  if (!value || typeof value !== 'object') return false;
+
+  const item = value as Partial<CartItem>;
+  return (
+    typeof item.id === 'number' &&
+    typeof item.name === 'string' &&
+    typeof item.price === 'number' &&
+    Number.isFinite(item.price) &&
+    typeof item.image === 'string' &&
+    typeof item.quantity === 'number' &&
+    Number.isInteger(item.quantity) &&
+    item.quantity > 0
+  );
+}
+
+function readSavedCart() {
+  try {
+    const savedCart = localStorage.getItem('cart');
+    const parsed = savedCart ? JSON.parse(savedCart) : [];
+    return Array.isArray(parsed) ? parsed.filter(isCartItem) : [];
+  } catch {
+    return [];
   }
-};
+}
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      const savedLang = localStorage.getItem('lang') as Language;
-      if (savedLang === 'RU' || savedLang === 'KZ') return savedLang;
-    }
-    return 'RU';
-  });
-
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) return JSON.parse(savedCart);
-      } catch (e) {}
-    }
-    return [];
-  });
-
+  const [lang, setLangState] = useState<Language>('RU');
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    const savedLang = localStorage.getItem('lang');
+    if (isLanguage(savedLang)) {
+      setLangState(savedLang);
+    }
+
+    setCart(readSavedCart());
     setIsHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (isHydrated) {
-      localStorage.setItem('cart', JSON.stringify(cart));
-      localStorage.setItem('lang', lang);
-    }
+    if (!isHydrated) return;
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem('lang', lang);
   }, [cart, lang, isHydrated]);
 
-  const addToCart = (product: any) => {
+  const setLang = (nextLang: Language) => {
+    setLangState(nextLang);
+  };
+
+  const addToCart = (product: CartProduct) => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
+
       if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+        return prev.map(item =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item,
+        );
       }
+
       return [...prev, { ...product, quantity: 1 }];
     });
     setIsCartOpen(true);
@@ -183,21 +217,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
-  const t = (key: string) => {
-    return (translations[lang] as any)[key] || key;
+  const t = (key: TranslationKey) => translations[lang][key] ?? key;
+
+  const value: AppContextType = {
+    lang,
+    setLang,
+    cart,
+    addToCart,
+    removeFromCart,
+    t,
+    isCartOpen,
+    setIsCartOpen,
   };
 
-  return (
-    <AppContext.Provider value={{ lang, setLang, cart, addToCart, removeFromCart, t, isCartOpen, setIsCartOpen }}>
-      {children}
-    </AppContext.Provider>
-  );
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {
   const context = useContext(AppContext);
+
   if (context === undefined) {
     throw new Error('useApp must be used within AppProvider');
   }
+
   return context;
 }
