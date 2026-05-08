@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "clean": "next clean",
+    "clean": "node -e \"const fs=require('fs'); for (const dir of ['.next','out']) fs.rmSync(dir,{recursive:true,force:true});\"",
     "seed": "tsx scripts/seed-sqlite.ts"
   },
   "dependencies": {
