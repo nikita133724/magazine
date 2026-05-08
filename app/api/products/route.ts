@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
-import { getProducts } from '@/lib/catalog';
+import { fallbackProducts } from '@/lib/fallbackProducts';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    return NextResponse.json(getProducts());
+    const { getProducts } = await import('@/lib/catalog');
+    const products = getProducts();
+    return NextResponse.json(products.length ? products : fallbackProducts);
   } catch (error) {
-    console.error('Failed to fetch products:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    console.warn('Using fallback products because database is unavailable:', error);
+    return NextResponse.json(fallbackProducts);
   }
 }
