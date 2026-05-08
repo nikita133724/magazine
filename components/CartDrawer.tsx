@@ -1,100 +1,43 @@
 'use client';
 
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Trash2, ShoppingBag } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { ShoppingBag, Trash2, X } from 'lucide-react';
+import Link from 'next/link';
 import { useApp } from '@/lib/context';
-import Image from 'next/image';
+import ProductImage from '@/components/site/ProductImage';
 
 export default function CartDrawer() {
-  const { cart, removeFromCart, isCartOpen, setIsCartOpen, t } = useApp();
-
-  const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const { cart, cartTotal, removeFromCart, updateCartQuantity, isCartOpen, setIsCartOpen, t } = useApp();
 
   return (
     <AnimatePresence>
       {isCartOpen && (
         <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsCartOpen(false)}
-            className="fixed inset-0 bg-black/50 z-[100] backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[101] shadow-2xl flex flex-col"
-          >
-            <div className="p-6 border-b flex justify-between items-center bg-black text-white">
-              <div className="flex items-center gap-3">
-                <ShoppingBag size={20} />
-                <h2 className="font-black uppercase tracking-tighter italic text-xl">{t('cart')}</h2>
-              </div>
-              <button 
-                onClick={() => setIsCartOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
-              >
-                <X size={24} />
-              </button>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCartOpen(false)} className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" />
+          <motion.aside initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 28, stiffness: 220 }} className="fixed right-0 top-0 z-[101] flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b bg-black p-5 text-white">
+              <div className="flex items-center gap-3"><ShoppingBag size={20} /><h2 className="text-xl font-black uppercase italic tracking-tighter">{t('cart')}</h2></div>
+              <button onClick={() => setIsCartOpen(false)} className="rounded-full p-2 transition hover:bg-white/10"><X size={24} /></button>
             </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-5">
               {cart.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
-                  <ShoppingBag size={48} strokeWidth={1} />
-                  <p className="font-bold uppercase text-xs tracking-widest">{t('empty_cart')}</p>
-                </div>
+                <div className="flex h-full flex-col items-center justify-center gap-4 text-center text-slate-400"><ShoppingBag size={52} strokeWidth={1} /><p className="text-xs font-black uppercase tracking-widest">{t('empty_cart')}</p><Link onClick={() => setIsCartOpen(false)} href="/products" className="rounded-full bg-black px-6 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:scale-105 hover:bg-violet-700">{t('catalog')}</Link></div>
               ) : (
-                cart.map((item) => (
-                  <motion.div 
-                    layout
-                    key={item.id} 
-                    className="flex gap-4 group"
-                  >
-                    <div className="relative w-24 h-32 bg-slate-100 overflow-hidden">
-                      <Image 
-                        src={item.image} 
-                        alt={item.name} 
-                        fill 
-                        className="object-cover"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
-                        <h3 className="font-black uppercase italic tracking-tighter text-sm line-clamp-1">{item.name}</h3>
-                        <p className="text-xs font-bold text-slate-400 mt-1">{item.quantity} x {item.price.toLocaleString()} ₸</p>
+                <div className="space-y-5">
+                  {cart.map(item => (
+                    <motion.div layout key={item.cartKey} className="flex gap-4 rounded-3xl border border-slate-100 bg-white p-3 shadow-sm">
+                      <Link onClick={() => setIsCartOpen(false)} href={`/products/${item.id}`} className="relative h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100"><ProductImage src={item.image} alt={item.name} /></Link>
+                      <div className="flex min-w-0 flex-1 flex-col justify-between">
+                        <div><Link onClick={() => setIsCartOpen(false)} href={`/products/${item.id}`} className="line-clamp-2 text-sm font-black uppercase italic tracking-tighter hover:text-violet-700">{item.name}</Link><p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">{item.size || 'OS'} · {item.price.toLocaleString()} ₸</p></div>
+                        <div className="flex items-center justify-between gap-3"><div className="flex items-center rounded-full border border-slate-200"><button onClick={() => updateCartQuantity(item.cartKey, item.quantity - 1)} className="px-3 py-2 hover:bg-violet-50">-</button><span className="min-w-7 text-center text-xs font-black">{item.quantity}</span><button onClick={() => updateCartQuantity(item.cartKey, item.quantity + 1)} className="px-3 py-2 hover:bg-violet-50">+</button></div><button onClick={() => removeFromCart(item.cartKey)} className="rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-500"><Trash2 size={16} /></button></div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="font-black text-sm">{(item.price * item.quantity).toLocaleString()} ₸</span>
-                        <button 
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-slate-300 hover:text-black transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))
+                    </motion.div>
+                  ))}
+                </div>
               )}
             </div>
-
-            {cart.length > 0 && (
-              <div className="p-6 border-t bg-slate-50">
-                <div className="flex justify-between items-end mb-6">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('subtotal')}</span>
-                  <span className="text-2xl font-black">{total.toLocaleString()} ₸</span>
-                </div>
-                <button className="w-full bg-black text-white py-5 font-black uppercase text-sm tracking-widest hover:bg-zinc-800 transition-all">
-                  {t('checkout')}
-                </button>
-              </div>
-            )}
-          </motion.div>
+            {cart.length > 0 && <div className="border-t bg-slate-50 p-5"><div className="mb-5 flex items-end justify-between"><span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('subtotal')}</span><span className="text-3xl font-black tracking-tighter">{cartTotal.toLocaleString()} ₸</span></div><Link onClick={() => setIsCartOpen(false)} href="/checkout" className="block w-full rounded-2xl bg-black py-4 text-center text-sm font-black uppercase tracking-widest text-white transition hover:scale-[1.01] hover:bg-violet-700">{t('checkout')}</Link></div>}
+          </motion.aside>
         </>
       )}
     </AnimatePresence>
