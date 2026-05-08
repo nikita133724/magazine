@@ -3,7 +3,7 @@ import db from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export interface ProductRow {
+interface ProductRow {
   id: number;
   name: string;
   price: number;
