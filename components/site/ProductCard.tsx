@@ -10,7 +10,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const { addToCart, t } = useApp();
   const image = product.main_image || product.image_url || product.images[0]?.image_url || '';
   const firstSize = product.sizes.find(size => size.stock > 0)?.size || product.sizes[0]?.size || 'OS';
-  const disabled = product.stock <= 0 && product.sizes.every(size => size.stock <= 0);
+  const disabled = product.sizes.length > 0 ? product.sizes.every(size => size.stock <= 0) : product.stock <= 0;
 
   return (
     <article className="group min-w-0">
