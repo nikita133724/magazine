@@ -135,26 +135,29 @@ const translations = {
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Language>('RU');
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('lang') as Language;
+      if (savedLang === 'RU' || savedLang === 'KZ') return savedLang;
+    }
+    return 'RU';
+  });
+
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedCart = localStorage.getItem('cart');
+        if (savedCart) return JSON.parse(savedCart);
+      } catch (e) {}
+    }
+    return [];
+  });
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart));
-      } catch (e) {
-        console.error('Failed to parse cart', e);
-      }
-    }
-    
-    const savedLang = localStorage.getItem('lang') as Language;
-    if (savedLang && (savedLang === 'RU' || savedLang === 'KZ')) {
-      setLang(savedLang);
-    }
-    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsHydrated(true);
   }, []);
 
