@@ -81,7 +81,7 @@ export default function HomePage() {
             <nav className="hidden lg:flex items-center gap-8 text-[13px] font-bold uppercase tracking-tight">
               <Link href="/products" className="decoration-2 hover:underline underline-offset-8 decoration-black">{t('men')}</Link>
               <Link href="/products" className="decoration-2 hover:underline underline-offset-8 decoration-black">{t('women')}</Link>
-              <Link href="/products" className="text-rose-600">New & Featured</Link>
+              <Link href="/products" className="text-rose-600">{t('new_featured')}</Link>
             </nav>
           </div>
 
@@ -184,7 +184,7 @@ export default function HomePage() {
         <div className="max-w-screen-2xl mx-auto px-4 md:px-8">
           <div className="flex justify-between items-end mb-12">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2 block">Top Picks</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2 block">{t('top_picks')}</span>
               <h2 className="text-4xl font-black uppercase tracking-tighter italic">{t('featured')}</h2>
             </div>
             <Link href="/products" className="text-xs font-black uppercase tracking-widest border-b-2 border-black pb-1 hover:text-slate-500 hover:border-slate-300 transition-all">
@@ -267,7 +267,7 @@ export default function HomePage() {
               <div className="absolute bottom-10 left-10 flex flex-col items-start gap-4">
                 <h4 className="text-white text-2xl font-black italic italic tracking-tighter drop-shadow-xl">{cat.name}</h4>
                 <div className="bg-white text-black font-black text-[10px] uppercase px-4 py-2 opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0">
-                  EXPLORE
+                  {t('explore')}
                 </div>
               </div>
             </motion.div>
@@ -279,25 +279,25 @@ export default function HomePage() {
       <footer className="bg-slate-50 border-t border-slate-200 py-24">
         <div className="max-w-screen-2xl mx-auto px-4 md:px-8 grid grid-cols-2 md:grid-cols-4 gap-12">
           <div>
-            <h5 className="font-black uppercase text-xs tracking-widest mb-8">PRODUCTS</h5>
+            <h5 className="font-black uppercase text-xs tracking-widest mb-8">{t('products')}</h5>
             <ul className="space-y-4 text-slate-500 text-sm font-medium">
-              <li><Link href="/products" className="hover:text-black transition-colors">Shoes</Link></li>
-              <li><Link href="/products" className="hover:text-black transition-colors">Clothing</Link></li>
-              <li><Link href="/products" className="hover:text-black transition-colors">Accessories</Link></li>
-              <li><Link href="/products" className="hover:text-black transition-colors">New Arrivals</Link></li>
+              <li><Link href="/products" className="hover:text-black transition-colors">{t('shoes')}</Link></li>
+              <li><Link href="/products" className="hover:text-black transition-colors">{t('clothing')}</Link></li>
+              <li><Link href="/products" className="hover:text-black transition-colors">{t('accessories')}</Link></li>
+              <li><Link href="/products" className="hover:text-black transition-colors">{t('new_arrivals_footer')}</Link></li>
             </ul>
           </div>
           <div>
-            <h5 className="font-black uppercase text-xs tracking-widest mb-8">SPORTS</h5>
+            <h5 className="font-black uppercase text-xs tracking-widest mb-8">{t('sports')}</h5>
             <ul className="space-y-4 text-slate-500 text-sm font-medium">
-              <li><Link href="/" className="hover:text-black transition-colors">Running</Link></li>
-              <li><Link href="/" className="hover:text-black transition-colors">Training</Link></li>
-              <li><Link href="/" className="hover:text-black transition-colors">Yoga</Link></li>
-              <li><Link href="/" className="hover:text-black transition-colors">Golf</Link></li>
+              <li><Link href="/" className="hover:text-black transition-colors">{t('running')}</Link></li>
+              <li><Link href="/" className="hover:text-black transition-colors">{t('training')}</Link></li>
+              <li><Link href="/" className="hover:text-black transition-colors">{t('yoga')}</Link></li>
+              <li><Link href="/" className="hover:text-black transition-colors">{t('golf')}</Link></li>
             </ul>
           </div>
           <div>
-            <h5 className="font-black uppercase text-xs tracking-widest mb-8">COLLECTIONS</h5>
+            <h5 className="font-black uppercase text-xs tracking-widest mb-8">{t('collections')}</h5>
             <ul className="space-y-4 text-slate-500 text-sm font-medium">
               <li><Link href="/" className="hover:text-black transition-colors">Ultraboost</Link></li>
               <li><Link href="/" className="hover:text-black transition-colors">Stan Smith</Link></li>
@@ -306,23 +306,23 @@ export default function HomePage() {
             </ul>
           </div>
           <div>
-            <h5 className="font-black uppercase text-xs tracking-widest mb-8">SUPPORT</h5>
+            <h5 className="font-black uppercase text-xs tracking-widest mb-8">{t('support').toUpperCase()}</h5>
             <ul className="space-y-4 text-slate-500 text-sm font-medium">
-              <li><Link href="/" className="hover:text-black transition-colors">Help</Link></li>
-              <li><Link href="/" className="hover:text-black transition-colors">Returns</Link></li>
-              <li><Link href="/" className="hover:text-black transition-colors">Contact Us</Link></li>
-              <li><Link href="/" className="hover:text-black transition-colors">Sizing</Link></li>
+              <li><Link href="/" className="hover:text-black transition-colors">{t('help')}</Link></li>
+              <li><Link href="/" className="hover:text-black transition-colors">{t('returns')}</Link></li>
+              <li><Link href="/" className="hover:text-black transition-colors">{t('contact_us')}</Link></li>
+              <li><Link href="/" className="hover:text-black transition-colors">{t('sizing')}</Link></li>
             </ul>
           </div>
         </div>
         
         <div className="max-w-screen-2xl mx-auto px-4 md:px-8 mt-24 flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-black uppercase tracking-widest text-slate-400">
           <div className="flex gap-8">
-            <Link href="/" className="hover:text-black transition-colors">Privacy Policy</Link>
-            <Link href="/" className="hover:text-black transition-colors">Terms of Service</Link>
+            <Link href="/" className="hover:text-black transition-colors">{t('privacy')}</Link>
+            <Link href="/" className="hover:text-black transition-colors">{t('terms')}</Link>
             <Link href="/" className="hover:text-black transition-colors">Data Settings</Link>
           </div>
-          <div>© 2024 NEXUS APPAREL LTD. ALL RIGHTS RESERVED.</div>
+          <div>© 2024 thrtythr.shop - {t('rights')}</div>
         </div>
       </footer>
     </div>

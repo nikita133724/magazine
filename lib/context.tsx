@@ -56,6 +56,28 @@ const translations = {
     no_styles: 'Стили не найдены',
     try_adjusting: 'Попробуйте изменить поиск или фильтры.',
     clear_filters: 'Сбросить фильтры',
+    explore: 'ИССЛЕДОВАТЬ',
+    top_picks: 'ЛУЧШИЙ ВЫБОР',
+    products: 'ТОВАРЫ',
+    shoes: 'Обувь',
+    clothing: 'Одежда',
+    sports: 'СПОРТ',
+    running: 'Бег',
+    training: 'Тренировки',
+    yoga: 'Йога',
+    golf: 'Гольф',
+    collections: 'КОЛЛЕКЦИИ',
+    help: 'Помощь',
+    returns: 'Возврат',
+    contact_us: 'Контакты',
+    sizing: 'Размеры',
+    privacy: 'Политика конфиденциальности',
+    terms: 'Условия использования',
+    rights: 'ВСЕ ПРАВА ЗАЩИЩЕНЫ',
+    new_featured: 'Новинки и популярное',
+    men_clothing: 'Мужская одежда',
+    women_clothing: 'Женская одежда',
+    new_arrivals_footer: 'Новинки',
   },
   KZ: {
     hero: 'ШЕКТЕН ШЫҚ',
@@ -87,6 +109,28 @@ const translations = {
     no_styles: 'Стильдер табылмады',
     try_adjusting: 'Іздеуді немесе фильтрлерді өзгертіп көріңіз.',
     clear_filters: 'Фильтрлерді тазалау',
+    explore: 'ЗЕРТТЕУ',
+    top_picks: 'ҮЗДІК ТАҢДАУ',
+    products: 'ТАУАРЛАР',
+    shoes: 'Аяқ киім',
+    clothing: 'Киім',
+    sports: 'СПОРТ',
+    running: 'Жүгіру',
+    training: 'Жаттығу',
+    yoga: 'Йога',
+    golf: 'Гольф',
+    collections: 'ЖИНАҚТАР',
+    help: 'Көмек',
+    returns: 'Қайтару',
+    contact_us: 'Байланыс',
+    sizing: 'Өлшемдер',
+    privacy: 'Құпиялылық саясаты',
+    terms: 'Пайдалану шарттары',
+    rights: 'БАРЛЫҚ ҚҰҚЫҚТАР ҚОРҒАЛҒАН',
+    new_featured: 'Жаңа және танымал',
+    men_clothing: 'Ерлер киімі',
+    women_clothing: 'Әйелдер киімі',
+    new_arrivals_footer: 'Жаңа тауарлар',
   }
 };
 
@@ -94,18 +138,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Language>('RU');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
-    if (savedCart) setCart(JSON.parse(savedCart));
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error('Failed to parse cart', e);
+      }
+    }
+    
     const savedLang = localStorage.getItem('lang') as Language;
-    if (savedLang) setLang(savedLang);
+    if (savedLang && (savedLang === 'RU' || savedLang === 'KZ')) {
+      setLang(savedLang);
+    }
+    
+    setIsHydrated(true);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
-    localStorage.setItem('lang', lang);
-  }, [cart, lang]);
+    if (isHydrated) {
+      localStorage.setItem('cart', JSON.stringify(cart));
+      localStorage.setItem('lang', lang);
+    }
+  }, [cart, lang, isHydrated]);
 
   const addToCart = (product: any) => {
     setCart(prev => {
@@ -135,6 +193,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 export function useApp() {
   const context = useContext(AppContext);
-  if (!context) throw new Error('useApp must be used within AppProvider');
+  if (context === undefined) {
+    throw new Error('useApp must be used within AppProvider');
+  }
   return context;
 }
