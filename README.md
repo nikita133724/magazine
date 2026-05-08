@@ -1,44 +1,27 @@
-# Nexus Apparel - Дипломный проект (Full-Stack Next.js + SQLite)
+# thrtythr.shop
 
-Проект представляет собой современный интернет-магазин спортивной одежды, построенный полностью на Next.js с использованием локальной базы данных SQLite.
+Next.js and SQLite ecommerce demo.
 
-## Технологический стек
-- **Frontend/Backend**: Next.js 15 (App Router & API Routes).
-- **Database**: SQLite 3 (интегрирована через `better-sqlite3`).
-- **Styling**: Tailwind CSS 4.
-- **Animations**: Motion (Framer Motion).
-- **Design**: Adidas-style / Minimalist Premium.
+## Features
 
-## Структура проекта для отчета
-- `/app`: Страницы и API роуты.
-  - `api/products/route.ts`: API эндпоинт для получения товаров из БД.
-- `/lib/db.ts`: Конфигурация и инициализация SQLite.
-- `/scripts/seed-sqlite.ts`: Скрипт для заполнения БД тестовыми данными.
-- `nexus_app.db`: Файл базы данных SQLite.
+- desktop and mobile navigation
+- home page product carousels
+- catalog with filters and sorting
+- product detail page
+- cart and checkout demo
+- admin pages
+- SQLite database seed
 
-## Быстрый запуск
+## Run
 
-### 1. Установка
 ```bash
-npm install
+npm install && npm run seed && npm run dev
 ```
 
-### 2. Подготовка базы данных
-Заполните базу данных реальными товарами (20+ позиций):
-```bash
-npm run seed
-```
+Open http://localhost:3000
 
-### 3. Запуск сайта
-```bash
-npm run dev
-```
-Сайт будет доступен по адресу `http://localhost:3000`.
+Open catalog at http://localhost:3000/products
 
----
+Open product example at http://localhost:3000/product?id=1
 
-## Особенности:
-1. **Чистая архитектура**: Всё в одном проекте на Next.js.
-2. **Реальные товары**: База данных содержит реальные кроссовки, худи и аксессуары с изображениями.
-3. **Анимации**: Плавные визуальные эффекты при скролле и наведении.
-4. **Адаптивность**: Полная поддержка мобильных устройств.
+Open admin at http://localhost:3000/admin
