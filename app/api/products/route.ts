@@ -16,9 +16,11 @@ export async function GET() {
     .select(productSelect)
     .eq('status', 'active')
     .is('deleted_at', null)
-    .order('is_bestseller', { ascending: false })
     .order('is_new', { ascending: false })
-    .order('id', { ascending: true });
+    .order('is_bestseller', { ascending: false })
+    .order('is_featured', { ascending: false })
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message, products: [] }, { status: 500 });
   return NextResponse.json((data || []).map(mapSupabaseProduct));
