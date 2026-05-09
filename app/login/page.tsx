@@ -46,11 +46,13 @@ export default function LoginPage() {
         <form onSubmit={submit} className="mt-8 space-y-4">
           <input required type="email" placeholder={l.email} value={email} onChange={e => setEmail(e.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-4 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100" />
           <input required type="password" placeholder={l.password} value={password} onChange={e => setPassword(e.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-4 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100" />
-          <div className="text-right"><Link href="/forgot-password" className="text-xs font-black uppercase tracking-widest text-slate-700 underline">{l.forgot}</Link></div>
           {error && <p className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">{error}</p>}
           <button disabled={loading} className="w-full rounded-2xl bg-black py-4 text-xs font-black uppercase tracking-widest text-white transition hover:bg-violet-800 disabled:bg-slate-400">{loading ? l.loading : l.submit}</button>
         </form>
-        <p className="mt-6 text-center text-sm text-slate-700">{l.noAccount} <Link href="/register" className="font-black text-black underline">{l.register}</Link></p>
+        <div className="mt-6 space-y-3 text-center text-sm text-slate-700">
+          <p>{l.noAccount} <Link href="/register" className="font-black text-black underline underline-offset-4">{l.register}</Link></p>
+          <p><Link href="/forgot-password" className="text-xs font-black uppercase tracking-widest text-slate-700 underline underline-offset-4">{l.forgot}</Link></p>
+        </div>
       </div>
     </div>
   );
