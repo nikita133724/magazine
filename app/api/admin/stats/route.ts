@@ -16,10 +16,18 @@ function sum(items: any[], key: string) {
   return items.reduce((acc, item) => acc + Number(item[key] || 0), 0);
 }
 
-function lastDays(count = 7) {
+function normalizeDay(value: string | null | undefined) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+  return date.toISOString().slice(0, 10);
+}
+
+function lastDaysFrom(anchorDate: Date, count = 7) {
   return Array.from({ length: count }).map((_, index) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (count - 1 - index));
+    const date = new Date(anchorDate);
+    date.setUTCHours(0, 0, 0, 0);
+    date.setUTCDate(date.getUTCDate() - (count - 1 - index));
     return date.toISOString().slice(0, 10);
   });
 }
@@ -42,11 +50,12 @@ export async function GET() {
   const customers = customersResult.data || [];
   const items = itemsResult.data || [];
   const totalRevenue = sum(orders, 'total');
+  const latestOrderDate = orders[0]?.created_at ? new Date(orders[0].created_at) : new Date();
 
   const dayMap = new Map<string, { day: string; revenue: number; orders: number }>();
-  for (const day of lastDays(7)) dayMap.set(day, { day, revenue: 0, orders: 0 });
+  for (const day of lastDaysFrom(latestOrderDate, 7)) dayMap.set(day, { day, revenue: 0, orders: 0 });
   for (const order of orders) {
-    const day = String(order.created_at || '').slice(0, 10);
+    const day = normalizeDay(order.created_at);
     if (!dayMap.has(day)) continue;
     const current = dayMap.get(day)!;
     current.revenue += Number(order.total || 0);
