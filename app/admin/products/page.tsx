@@ -104,6 +104,10 @@ function AdminProductsContent() {
     <AdminShell title="Товары">
       <form onSubmit={submit} className="mb-6 rounded-[2rem] border border-violet-200 bg-white p-6 shadow-sm">
         <h2 className="mb-5 text-2xl font-black uppercase italic tracking-tighter">{editingId ? 'Редактировать товар' : 'Добавить товар'}</h2>
+        <div className="mb-4 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-700">
+          <p><span className="text-black">Статус товара</span> отвечает за показ товара на сайте: активен, черновик или архив.</p>
+          <p className="mt-1"><span className="text-black">Блоки на сайте</span> отвечают за то, где дополнительно показывать товар: в новинках, хитах продаж или рекомендациях на главной.</p>
+        </div>
         <div className="grid gap-3 md:grid-cols-3">
           <input required placeholder="Название RU" value={form.name_ru} onChange={e => set('name_ru', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
           <input required placeholder="Название KZ" value={form.name_kz} onChange={e => set('name_kz', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
@@ -113,12 +117,16 @@ function AdminProductsContent() {
           <input placeholder="Подкатегория KZ" value={form.sub_category_kz} onChange={e => set('sub_category_kz', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
           <input placeholder="Остаток" value={form.stock} onChange={e => set('stock', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
           <input placeholder="Размеры через запятую" value={form.sizes} onChange={e => set('sizes', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
-          <select aria-label="Статус товара" value={form.status} onChange={e => set('status', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3"><option value="active">Активен</option><option value="draft">Черновик</option><option value="archived">В архиве</option></select>
+          <select aria-label="Статус товара" value={form.status} onChange={e => set('status', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3"><option value="active">Активен — виден на сайте</option><option value="draft">Черновик — скрыт от покупателей</option><option value="archived">В архиве — снят с продажи</option></select>
           <input type="file" accept="image/*" disabled={uploading} onChange={e => e.target.files?.[0] && upload(e.target.files[0]).catch(err => setMessage(err.message))} className="rounded-2xl border border-slate-300 px-4 py-3 disabled:opacity-50" />
           <input placeholder="URL картинки" value={form.main_image} onChange={e => set('main_image', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3 md:col-span-2" />
         </div>
         {form.main_image && <p className="mt-3 break-all rounded-2xl bg-violet-50 p-3 text-xs font-bold text-violet-900">Фото: {form.main_image}</p>}
-        <div className="mt-4 flex flex-wrap gap-4 text-sm font-bold"><label><input type="checkbox" checked={form.is_new} onChange={e => set('is_new', e.target.checked)} /> Новинка</label><label><input type="checkbox" checked={form.is_bestseller} onChange={e => set('is_bestseller', e.target.checked)} /> Хит</label><label><input type="checkbox" checked={form.is_featured} onChange={e => set('is_featured', e.target.checked)} /> Рекомендуем</label></div>
+        <div className="mt-4 grid gap-3 text-sm font-bold md:grid-cols-3">
+          <label className="rounded-2xl border border-slate-200 bg-white p-4"><input type="checkbox" checked={form.is_new} onChange={e => set('is_new', e.target.checked)} /> <span className="font-black">Показывать в новинках</span><p className="mt-1 text-xs font-bold text-slate-600">Товар попадёт в блок «Новинки».</p></label>
+          <label className="rounded-2xl border border-slate-200 bg-white p-4"><input type="checkbox" checked={form.is_bestseller} onChange={e => set('is_bestseller', e.target.checked)} /> <span className="font-black">Показывать в хитах продаж</span><p className="mt-1 text-xs font-bold text-slate-600">Товар попадёт в блок «Хиты».</p></label>
+          <label className="rounded-2xl border border-slate-200 bg-white p-4"><input type="checkbox" checked={form.is_featured} onChange={e => set('is_featured', e.target.checked)} /> <span className="font-black">Показывать в рекомендациях</span><p className="mt-1 text-xs font-bold text-slate-600">Товар попадёт в подборки на главной.</p></label>
+        </div>
         {message && <p className="mt-4 text-sm font-bold text-violet-800">{message}</p>}
         <div className="mt-5 flex flex-wrap gap-3"><button disabled={loading || uploading} className="rounded-2xl bg-black px-6 py-4 text-xs font-black uppercase tracking-widest text-white hover:bg-violet-800 disabled:bg-slate-400">{uploading ? 'Загружаем фото...' : loading ? 'Сохраняем...' : editingId ? 'Сохранить изменения' : 'Добавить товар'}</button>{editingId && <button type="button" onClick={() => { setEditingId(null); setForm({ ...blank, category_slug: categoryFilter === 'all' ? 'apparel' : categoryFilter }); }} className="rounded-2xl bg-slate-100 px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-800">Отмена</button>}</div>
       </form>
