@@ -14,8 +14,12 @@ function extFromName(name: string, type: string) {
   return 'jpg';
 }
 
-function safeSlug(value: string) {
-  return value.trim().toLowerCase().replace(/[^a-z0-9а-яё]+/gi, '-').replace(/^-|-$/g, '') || 'products';
+function storagePath(file: UploadFile) {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const random = Math.random().toString(36).slice(2);
+  return `products/${year}/${month}/${Date.now()}-${random}.${extFromName(file.name, file.type)}`;
 }
 
 async function ensureBucket(supabase: ReturnType<typeof getSupabaseAdmin>, bucket: string) {
@@ -35,7 +39,6 @@ export async function POST(request: Request) {
 
   const form = await request.formData();
   const maybeFile = form.get('file');
-  const productSlug = safeSlug(String(form.get('slug') || 'products'));
 
   if (!maybeFile || typeof maybeFile !== 'object' || !('arrayBuffer' in maybeFile)) {
     return NextResponse.json({ error: 'Файл не получен. Выберите изображение ещё раз.' }, { status: 400 });
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
     console.warn('Could not ensure storage bucket:', error);
   }
 
-  const path = `${productSlug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extFromName(file.name, file.type)}`;
+  const path = storagePath(file);
   const bytes = await file.arrayBuffer();
 
   const { error } = await supabase.storage.from(bucket).upload(path, bytes, {
