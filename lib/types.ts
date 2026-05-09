@@ -1,12 +1,16 @@
 export type ProductStatus = 'active' | 'draft' | 'archived';
 export type OrderStatus = 'new' | 'processing' | 'shipped' | 'delivered' | 'canceled';
-export type PaymentStatus = 'pending' | 'paid' | 'error' | 'refunded';
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 
 export interface Category {
   id: number;
   name: string;
   slug: string;
   description?: string | null;
+  name_ru?: string | null;
+  name_kz?: string | null;
+  description_ru?: string | null;
+  description_kz?: string | null;
 }
 
 export interface ProductImage {
@@ -28,14 +32,20 @@ export interface Product {
   id: number;
   slug: string;
   name: string;
+  name_ru?: string | null;
+  name_kz?: string | null;
   price: number;
   compare_at_price?: number | null;
   category_id: number;
   category_name: string;
   category_slug: string;
   sub_category?: string | null;
+  sub_category_ru?: string | null;
+  sub_category_kz?: string | null;
   rating: number;
   description?: string | null;
+  description_ru?: string | null;
+  description_kz?: string | null;
   main_image?: string | null;
   image_url?: string | null;
   stock: number;
