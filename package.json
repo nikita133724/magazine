@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
+    "@supabase/supabase-js": "^2.86.0",
     "autoprefixer": "^10.4.21",
     "better-sqlite3": "^12.9.0",
     "class-variance-authority": "^0.7.1",
