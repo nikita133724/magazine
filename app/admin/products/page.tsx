@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AdminShell from '@/components/admin/AdminShell';
 import type { Product } from '@/lib/types';
@@ -8,7 +8,7 @@ import type { Product } from '@/lib/types';
 const blank = { name_ru: '', name_kz: '', price: '', stock: '10', category_slug: 'apparel', sub_category_ru: '', sub_category_kz: '', sizes: 'S,M,L,XL', main_image: '', is_featured: false, is_bestseller: false, is_new: true, status: 'active' };
 type ProductForm = typeof blank;
 
-export default function AdminProductsPage() {
+function AdminProductsContent() {
   const searchParams = useSearchParams();
   const categoryFilter = searchParams.get('category') || 'all';
   const editParam = searchParams.get('edit');
@@ -106,5 +106,13 @@ export default function AdminProductsPage() {
       </form>
       <div className="rounded-[2rem] bg-white p-6 shadow-sm"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-black uppercase italic tracking-tighter">Список товаров</h2><p className="text-sm font-bold text-slate-700">Показано: {filteredProducts.length}</p></div><div className="overflow-x-auto"><table className="w-full min-w-[920px] text-left text-sm"><thead><tr className="text-slate-700"><th className="p-3">Фото</th><th>Название</th><th>Категория</th><th>Остаток</th><th>Цена</th><th>Статус</th><th></th></tr></thead><tbody>{filteredProducts.map(p => <tr key={p.id} className="border-t"><td className="p-3"><div className="h-14 w-12 overflow-hidden rounded-xl bg-slate-100">{p.main_image ? <img src={p.main_image} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-[10px] font-black text-red-600">нет</span>}</div></td><td className="p-3 font-black">{p.name_ru || p.name}</td><td>{p.category_name}</td><td>{p.stock}</td><td>{p.price.toLocaleString()} ₸</td><td>{p.status}</td><td className="flex gap-2 py-2"><button onClick={() => edit(p)} className="rounded-full bg-violet-50 px-4 py-2 text-xs font-black text-violet-800">Редактировать</button><button onClick={() => remove(p.id)} className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-red-700">Удалить</button></td></tr>)}</tbody></table></div></div>
     </AdminShell>
+  );
+}
+
+export default function AdminProductsPage() {
+  return (
+    <Suspense fallback={<AdminShell title="Товары"><div className="rounded-[2rem] bg-white p-6 shadow-sm">Загрузка товаров...</div></AdminShell>}>
+      <AdminProductsContent />
+    </Suspense>
   );
 }
