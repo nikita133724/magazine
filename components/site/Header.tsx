@@ -9,10 +9,10 @@ import { useApp } from '@/lib/context';
 
 const labels = {
   RU: {
-    catalog: 'Каталог', new: 'Новинки', best: 'Хиты', apparel: 'Одежда', footwear: 'Обувь', accessories: 'Аксессуары', checkout: 'Оформление', support: 'Поддержка', supportText: 'Поможем подобрать размер и оформить заказ.', account: 'Профиль', menu: 'Открыть меню', close: 'Закрыть меню', cart: 'Открыть корзину', search: 'Поиск товаров', promo: 'Бесплатная доставка от 50 000 ₸',
+    catalog: 'Каталог', new: 'Новинки', best: 'Хиты', apparel: 'Одежда', footwear: 'Обувь', accessories: 'Аксессуары', checkout: 'Оформление', support: 'Поддержка', supportText: 'Поможем подобрать размер и оформить заказ.', account: 'Профиль', menu: 'Открыть меню', close: 'Закрыть меню', cart: 'Открыть корзину', search: 'Поиск товаров', promo: 'Бесплатная доставка от 50 000 ₸', language: 'Язык',
   },
   KZ: {
-    catalog: 'Каталог', new: 'Жаңалар', best: 'Хиттер', apparel: 'Киім', footwear: 'Аяқ киім', accessories: 'Аксессуарлар', checkout: 'Тапсырыс', support: 'Қолдау', supportText: 'Өлшем таңдауға және тапсырыс беруге көмектесеміз.', account: 'Профиль', menu: 'Мәзірді ашу', close: 'Мәзірді жабу', cart: 'Себетті ашу', search: 'Тауар іздеу', promo: '50 000 ₸ бастап тегін жеткізу',
+    catalog: 'Каталог', new: 'Жаңалар', best: 'Хиттер', apparel: 'Киім', footwear: 'Аяқ киім', accessories: 'Аксессуарлар', checkout: 'Тапсырыс', support: 'Қолдау', supportText: 'Өлшем таңдауға және тапсырыс беруге көмектесеміз.', account: 'Профиль', menu: 'Мәзірді ашу', close: 'Мәзірді жабу', cart: 'Себетті ашу', search: 'Тауар іздеу', promo: '50 000 ₸ бастап тегін жеткізу', language: 'Тіл',
   },
 };
 
@@ -30,6 +30,8 @@ export default function Header() {
     { href: '/products?category=accessories', label: l.accessories },
   ];
 
+  const languageSwitch = <div className="rounded-full bg-slate-100 p-1 text-[10px] font-black"><button aria-label="Русский язык" onClick={() => setLang('RU')} className={`rounded-full px-3 py-1.5 ${lang === 'RU' ? 'bg-black text-white' : 'text-slate-700'}`}>RU</button><button aria-label="Қазақ тілі" onClick={() => setLang('KZ')} className={`rounded-full px-3 py-1.5 ${lang === 'KZ' ? 'bg-black text-white' : 'text-slate-700'}`}>KZ</button></div>;
+
   return (
     <>
       <div className="bg-black px-4 py-2 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white">{l.promo}</div>
@@ -42,13 +44,13 @@ export default function Header() {
           </div>
           <div className="flex items-center gap-2 md:gap-4">
             <div className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 xl:flex"><Search size={16} className="text-slate-600" aria-hidden="true" /><input aria-label={l.search} className="w-44 bg-transparent text-sm outline-none placeholder:text-slate-600" placeholder={l.search} /></div>
-            <div className="hidden rounded-full bg-slate-100 p-1 text-[10px] font-black md:flex"><button aria-label="Русский язык" onClick={() => setLang('RU')} className={`rounded-full px-3 py-1.5 ${lang === 'RU' ? 'bg-black text-white' : 'text-slate-700'}`}>RU</button><button aria-label="Қазақ тілі" onClick={() => setLang('KZ')} className={`rounded-full px-3 py-1.5 ${lang === 'KZ' ? 'bg-black text-white' : 'text-slate-700'}`}>KZ</button></div>
-            <button aria-label={l.account} className="hidden rounded-full p-2 transition hover:bg-violet-50 md:block"><UserRound size={20} /></button>
+            <div className="hidden md:block">{languageSwitch}</div>
+            <Link href="/account" aria-label={l.account} className="hidden rounded-full p-2 transition hover:bg-violet-50 md:block"><UserRound size={20} /></Link>
             <button aria-label={l.cart} onClick={() => setIsCartOpen(true)} className="relative rounded-full p-2 transition hover:bg-violet-50"><ShoppingBag size={21} />{cartCount > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-black px-1 text-[10px] font-black text-white">{cartCount}</span>}</button>
           </div>
         </div>
       </header>
-      <AnimatePresence>{menuOpen && <><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm lg:hidden" /><motion.aside initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ type: 'spring', damping: 28, stiffness: 240 }} className="fixed inset-y-0 left-0 z-[91] flex w-[86vw] max-w-sm flex-col bg-white p-6 shadow-2xl lg:hidden"><div className="mb-8 flex items-center justify-between"><Link href="/" onClick={() => setMenuOpen(false)} className="font-mono text-2xl font-black tracking-tighter">thrtythr.shop</Link><button aria-label={l.close} onClick={() => setMenuOpen(false)} className="rounded-full p-2 hover:bg-slate-100"><X size={22} /></button></div><nav className="flex flex-col gap-2">{navLinks.map(link => <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className="rounded-2xl px-4 py-4 text-sm font-black uppercase tracking-[0.16em] transition hover:bg-violet-50 hover:text-violet-700">{link.label}</Link>)}<Link href="/checkout" onClick={() => setMenuOpen(false)} className="rounded-2xl px-4 py-4 text-sm font-black uppercase tracking-[0.16em] transition hover:bg-violet-50 hover:text-violet-700">{l.checkout}</Link></nav><div className="mt-auto rounded-3xl bg-violet-50 p-5 text-sm text-slate-700"><p className="font-black uppercase tracking-widest text-black">{l.support}</p><p className="mt-2">{l.supportText}</p></div></motion.aside></>}</AnimatePresence>
+      <AnimatePresence>{menuOpen && <><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm lg:hidden" /><motion.aside initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ type: 'spring', damping: 28, stiffness: 240 }} className="fixed inset-y-0 left-0 z-[91] flex w-[86vw] max-w-sm flex-col bg-white p-6 shadow-2xl lg:hidden"><div className="mb-8 flex items-center justify-between"><Link href="/" onClick={() => setMenuOpen(false)} className="font-mono text-2xl font-black tracking-tighter">thrtythr.shop</Link><button aria-label={l.close} onClick={() => setMenuOpen(false)} className="rounded-full p-2 hover:bg-slate-100"><X size={22} /></button></div><div className="mb-5 flex items-center justify-between rounded-3xl bg-slate-50 p-3"><span className="text-xs font-black uppercase tracking-widest text-slate-700">{l.language}</span>{languageSwitch}</div><nav className="flex flex-col gap-2">{navLinks.map(link => <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className="rounded-2xl px-4 py-4 text-sm font-black uppercase tracking-[0.16em] transition hover:bg-violet-50 hover:text-violet-700">{link.label}</Link>)}<Link href="/account" onClick={() => setMenuOpen(false)} className="rounded-2xl px-4 py-4 text-sm font-black uppercase tracking-[0.16em] transition hover:bg-violet-50 hover:text-violet-700">{l.account}</Link><Link href="/checkout" onClick={() => setMenuOpen(false)} className="rounded-2xl px-4 py-4 text-sm font-black uppercase tracking-[0.16em] transition hover:bg-violet-50 hover:text-violet-700">{l.checkout}</Link></nav><div className="mt-auto rounded-3xl bg-violet-50 p-5 text-sm text-slate-700"><p className="font-black uppercase tracking-widest text-black">{l.support}</p><p className="mt-2">{l.supportText}</p></div></motion.aside></>}</AnimatePresence>
     </>
   );
 }
