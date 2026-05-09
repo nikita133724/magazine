@@ -23,6 +23,7 @@ const homeText = {
     shoes: 'Обувь',
     accessories: 'Аксессуары',
     store: 'Магазин',
+    categoryNew: 'Новое по категориям',
     delivery: 'Быстрая доставка',
     deliveryText: 'Доставка по городу и регионам удобным способом.',
     returns: 'Возврат и обмен',
@@ -44,6 +45,7 @@ const homeText = {
     shoes: 'Аяқ киім',
     accessories: 'Аксессуарлар',
     store: 'Дүкен',
+    categoryNew: 'Санаттардағы жаңалар',
     delivery: 'Жылдам жеткізу',
     deliveryText: 'Қала және өңірлер бойынша ыңғайлы жеткізу.',
     returns: 'Қайтару және айырбастау',
@@ -54,19 +56,32 @@ const homeText = {
   },
 };
 
+function sortHomeProducts(items: Product[]) {
+  return [...items].sort((a, b) => {
+    if (Number(Boolean(b.is_new)) !== Number(Boolean(a.is_new))) return Number(Boolean(b.is_new)) - Number(Boolean(a.is_new));
+    if (Number(Boolean(b.is_bestseller)) !== Number(Boolean(a.is_bestseller))) return Number(Boolean(b.is_bestseller)) - Number(Boolean(a.is_bestseller));
+    if (Number(Boolean(b.is_featured)) !== Number(Boolean(a.is_featured))) return Number(Boolean(b.is_featured)) - Number(Boolean(a.is_featured));
+    return Number(b.id || 0) - Number(a.id || 0);
+  });
+}
+
 export default function HomePage() {
   const { lang } = useApp();
   const t = homeText[lang];
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    fetch('/api/products').then(res => res.json()).then(data => Array.isArray(data) && setProducts(data)).catch(console.error);
+    fetch('/api/products', { cache: 'no-store' }).then(res => res.json()).then(data => Array.isArray(data) && setProducts(data)).catch(console.error);
   }, []);
 
-  const bestsellers = useMemo(() => products.filter(product => product.is_bestseller).slice(0, 8), [products]);
-  const newest = useMemo(() => products.filter(product => product.is_new).slice(0, 8), [products]);
-  const featured = useMemo(() => products.filter(product => product.is_featured).slice(0, 8), [products]);
-  const heroImage = products[0]?.main_image || products[0]?.image_url || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600';
+  const sortedProducts = useMemo(() => sortHomeProducts(products), [products]);
+  const bestsellers = useMemo(() => sortHomeProducts(products.filter(product => product.is_bestseller)).slice(0, 8), [products]);
+  const newest = useMemo(() => sortHomeProducts(products.filter(product => product.is_new)).slice(0, 8), [products]);
+  const featured = useMemo(() => sortHomeProducts(products.filter(product => product.is_featured)).slice(0, 12), [products]);
+  const apparel = useMemo(() => sortHomeProducts(products.filter(product => product.category_slug === 'apparel')).slice(0, 8), [products]);
+  const footwear = useMemo(() => sortHomeProducts(products.filter(product => product.category_slug === 'footwear')).slice(0, 8), [products]);
+  const accessories = useMemo(() => sortHomeProducts(products.filter(product => product.category_slug === 'accessories')).slice(0, 8), [products]);
+  const heroImage = sortedProducts[0]?.main_image || sortedProducts[0]?.image_url || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600';
 
   return (
     <div className="overflow-hidden bg-white text-black">
@@ -81,9 +96,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <ProductCarousel eyebrow="TOP" title={t.best} products={bestsellers.length ? bestsellers : products.slice(0, 8)} href="/products?tag=bestseller" />
-      <ProductCarousel eyebrow="NEW" title={t.new} products={newest.length ? newest : products.slice(4, 12)} href="/products?tag=new" />
-      <ProductCarousel eyebrow="SELECTED" title={t.featured} products={featured.length ? featured : products.slice(8, 16)} />
+      <ProductCarousel eyebrow="TOP" title={t.best} products={bestsellers.length ? bestsellers : sortedProducts.slice(0, 8)} href="/products?tag=bestseller" />
+      <ProductCarousel eyebrow="NEW" title={t.new} products={newest.length ? newest : sortedProducts.slice(0, 8)} href="/products?tag=new" />
+      <ProductCarousel eyebrow="SELECTED" title={t.featured} products={featured.length ? featured : sortedProducts.slice(0, 12)} />
 
       <section className="mx-auto max-w-screen-2xl px-4 py-16 md:px-8">
         <SectionHeader eyebrow={t.store} title={t.categories} action={t.viewAll} />
@@ -95,6 +110,10 @@ export default function HomePage() {
           ].map(([title, subtitle, href]) => <Link key={title} href={href} className="rounded-[2rem] border border-slate-200 bg-slate-50 p-8 transition hover:-translate-y-1 hover:bg-violet-50"><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-700">{subtitle}</p><h3 className="mt-3 text-4xl font-black uppercase italic tracking-tighter">{title}</h3></Link>)}
         </div>
       </section>
+
+      <ProductCarousel eyebrow="APPAREL" title={`${t.categoryNew}: ${t.clothes}`} products={apparel} href="/products?category=apparel" />
+      <ProductCarousel eyebrow="FOOTWEAR" title={`${t.categoryNew}: ${t.shoes}`} products={footwear} href="/products?category=footwear" />
+      <ProductCarousel eyebrow="ACCESSORIES" title={`${t.categoryNew}: ${t.accessories}`} products={accessories} href="/products?category=accessories" />
 
       <section className="mx-auto grid max-w-screen-2xl gap-4 px-4 pb-20 md:grid-cols-3 md:px-8">
         {[[t.delivery, t.deliveryText, Truck], [t.returns, t.returnsText, RotateCcw], [t.payment, t.paymentText, ShieldCheck]].map(([title, text, Icon]) => <div key={String(title)} className="rounded-[2rem] border border-violet-200 bg-white p-6 shadow-sm"><Icon className="mb-5 text-violet-700" size={26} /><h3 className="text-xl font-black uppercase italic tracking-tighter">{String(title)}</h3><p className="mt-2 text-sm text-slate-700">{String(text)}</p></div>)}
