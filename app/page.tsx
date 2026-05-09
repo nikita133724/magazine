@@ -65,6 +65,31 @@ function sortHomeProducts(items: Product[]) {
   });
 }
 
+function uniqueById(items: Product[]) {
+  const seen = new Set<number>();
+  return items.filter(item => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+function withoutIds(items: Product[], ids: Set<number>) {
+  return items.filter(item => !ids.has(item.id));
+}
+
+function fillList(primary: Product[], fallback: Product[], limit: number) {
+  const used = new Set<number>();
+  const result: Product[] = [];
+  for (const item of [...primary, ...fallback]) {
+    if (used.has(item.id)) continue;
+    used.add(item.id);
+    result.push(item);
+    if (result.length >= limit) break;
+  }
+  return result;
+}
+
 export default function HomePage() {
   const { lang } = useApp();
   const t = homeText[lang];
@@ -74,10 +99,16 @@ export default function HomePage() {
     fetch('/api/products', { cache: 'no-store' }).then(res => res.json()).then(data => Array.isArray(data) && setProducts(data)).catch(console.error);
   }, []);
 
-  const sortedProducts = useMemo(() => sortHomeProducts(products), [products]);
-  const bestsellers = useMemo(() => sortHomeProducts(products.filter(product => product.is_bestseller)).slice(0, 8), [products]);
-  const newest = useMemo(() => sortHomeProducts(products.filter(product => product.is_new)).slice(0, 8), [products]);
-  const featured = useMemo(() => sortHomeProducts(products.filter(product => product.is_featured)).slice(0, 12), [products]);
+  const sortedProducts = useMemo(() => uniqueById(sortHomeProducts(products)), [products]);
+  const bestsellers = useMemo(() => fillList(sortHomeProducts(products.filter(product => product.is_bestseller)), sortedProducts, 8), [products, sortedProducts]);
+  const newest = useMemo(() => {
+    const used = new Set(bestsellers.map(product => product.id));
+    return fillList(sortHomeProducts(withoutIds(products.filter(product => product.is_new), used)), withoutIds(sortedProducts, used), 8);
+  }, [products, sortedProducts, bestsellers]);
+  const featured = useMemo(() => {
+    const used = new Set([...bestsellers, ...newest].map(product => product.id));
+    return fillList(sortHomeProducts(withoutIds(products.filter(product => product.is_featured), used)), withoutIds(sortedProducts, used), 12);
+  }, [products, sortedProducts, bestsellers, newest]);
   const apparel = useMemo(() => sortHomeProducts(products.filter(product => product.category_slug === 'apparel')).slice(0, 8), [products]);
   const footwear = useMemo(() => sortHomeProducts(products.filter(product => product.category_slug === 'footwear')).slice(0, 8), [products]);
   const accessories = useMemo(() => sortHomeProducts(products.filter(product => product.category_slug === 'accessories')).slice(0, 8), [products]);
@@ -96,9 +127,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <ProductCarousel eyebrow="TOP" title={t.best} products={bestsellers.length ? bestsellers : sortedProducts.slice(0, 8)} href="/products?tag=bestseller" />
-      <ProductCarousel eyebrow="NEW" title={t.new} products={newest.length ? newest : sortedProducts.slice(0, 8)} href="/products?tag=new" />
-      <ProductCarousel eyebrow="SELECTED" title={t.featured} products={featured.length ? featured : sortedProducts.slice(0, 12)} />
+      <ProductCarousel eyebrow="TOP" title={t.best} products={bestsellers} href="/products?tag=bestseller" />
+      <ProductCarousel eyebrow="NEW" title={t.new} products={newest} href="/products?tag=new" />
+      <ProductCarousel eyebrow="SELECTED" title={t.featured} products={featured} />
 
       <section className="mx-auto max-w-screen-2xl px-4 py-16 md:px-8">
         <SectionHeader eyebrow={t.store} title={t.categories} action={t.viewAll} />
