@@ -8,6 +8,16 @@ import type { Product } from '@/lib/types';
 const blank = { name_ru: '', name_kz: '', price: '', stock: '10', category_slug: 'apparel', sub_category_ru: '', sub_category_kz: '', sizes: 'S,M,L,XL', main_image: '', is_featured: false, is_bestseller: false, is_new: true, status: 'active' };
 type ProductForm = typeof blank;
 
+const productStatusLabels: Record<string, string> = {
+  active: 'Активен',
+  draft: 'Черновик',
+  archived: 'В архиве',
+};
+
+function productStatusLabel(status?: string) {
+  return productStatusLabels[status || ''] || status || '-';
+}
+
 function AdminProductsContent() {
   const searchParams = useSearchParams();
   const categoryFilter = searchParams.get('category') || 'all';
@@ -103,7 +113,7 @@ function AdminProductsContent() {
           <input placeholder="Подкатегория KZ" value={form.sub_category_kz} onChange={e => set('sub_category_kz', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
           <input placeholder="Остаток" value={form.stock} onChange={e => set('stock', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
           <input placeholder="Размеры через запятую" value={form.sizes} onChange={e => set('sizes', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
-          <select value={form.status} onChange={e => set('status', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3"><option value="active">active</option><option value="draft">draft</option><option value="archived">archived</option></select>
+          <select aria-label="Статус товара" value={form.status} onChange={e => set('status', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3"><option value="active">Активен</option><option value="draft">Черновик</option><option value="archived">В архиве</option></select>
           <input type="file" accept="image/*" disabled={uploading} onChange={e => e.target.files?.[0] && upload(e.target.files[0]).catch(err => setMessage(err.message))} className="rounded-2xl border border-slate-300 px-4 py-3 disabled:opacity-50" />
           <input placeholder="URL картинки" value={form.main_image} onChange={e => set('main_image', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3 md:col-span-2" />
         </div>
@@ -112,7 +122,7 @@ function AdminProductsContent() {
         {message && <p className="mt-4 text-sm font-bold text-violet-800">{message}</p>}
         <div className="mt-5 flex flex-wrap gap-3"><button disabled={loading || uploading} className="rounded-2xl bg-black px-6 py-4 text-xs font-black uppercase tracking-widest text-white hover:bg-violet-800 disabled:bg-slate-400">{uploading ? 'Загружаем фото...' : loading ? 'Сохраняем...' : editingId ? 'Сохранить изменения' : 'Добавить товар'}</button>{editingId && <button type="button" onClick={() => { setEditingId(null); setForm({ ...blank, category_slug: categoryFilter === 'all' ? 'apparel' : categoryFilter }); }} className="rounded-2xl bg-slate-100 px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-800">Отмена</button>}</div>
       </form>
-      <div className="rounded-[2rem] bg-white p-6 shadow-sm"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-black uppercase italic tracking-tighter">Список товаров</h2><p className="text-sm font-bold text-slate-700">Показано: {filteredProducts.length}</p></div><div className="overflow-x-auto"><table className="w-full min-w-[920px] text-left text-sm"><thead><tr className="text-slate-700"><th className="p-3">Фото</th><th>Название</th><th>Категория</th><th>Остаток</th><th>Цена</th><th>Статус</th><th></th></tr></thead><tbody>{filteredProducts.map(p => <tr key={p.id} className="border-t"><td className="p-3"><div className="h-14 w-12 overflow-hidden rounded-xl bg-slate-100">{p.main_image ? <img src={p.main_image} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-[10px] font-black text-red-600">нет</span>}</div></td><td className="p-3 font-black">{p.name_ru || p.name}</td><td>{p.category_name}</td><td>{p.stock}</td><td>{p.price.toLocaleString()} ₸</td><td>{p.status}</td><td className="flex gap-2 py-2"><button onClick={() => edit(p)} className="rounded-full bg-violet-50 px-4 py-2 text-xs font-black text-violet-800">Редактировать</button><button onClick={() => remove(p.id)} className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-red-700">Удалить</button></td></tr>)}</tbody></table></div></div>
+      <div className="rounded-[2rem] bg-white p-6 shadow-sm"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-black uppercase italic tracking-tighter">Список товаров</h2><p className="text-sm font-bold text-slate-700">Показано: {filteredProducts.length}</p></div><div className="overflow-x-auto"><table className="w-full min-w-[920px] text-left text-sm"><thead><tr className="text-slate-700"><th className="p-3">Фото</th><th>Название</th><th>Категория</th><th>Остаток</th><th>Цена</th><th>Статус</th><th></th></tr></thead><tbody>{filteredProducts.map(p => <tr key={p.id} className="border-t"><td className="p-3"><div className="h-14 w-12 overflow-hidden rounded-xl bg-slate-100">{p.main_image ? <img src={p.main_image} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-[10px] font-black text-red-600">нет</span>}</div></td><td className="p-3 font-black">{p.name_ru || p.name}</td><td>{p.category_name}</td><td>{p.stock}</td><td>{p.price.toLocaleString()} ₸</td><td>{productStatusLabel(p.status)}</td><td className="flex gap-2 py-2"><button onClick={() => edit(p)} className="rounded-full bg-violet-50 px-4 py-2 text-xs font-black text-violet-800">Редактировать</button><button onClick={() => remove(p.id)} className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-red-700">Удалить</button></td></tr>)}</tbody></table></div></div>
     </AdminShell>
   );
 }
