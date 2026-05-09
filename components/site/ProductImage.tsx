@@ -1,5 +1,6 @@
 'use client';
 
+import { ImageOff } from 'lucide-react';
 import { useState } from 'react';
 
 interface ProductImageProps {
@@ -14,10 +15,11 @@ export default function ProductImage({ src, alt, className = '', priority = fals
 
   if (!src || failed) {
     return (
-      <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-violet-50 p-6 text-center ${className}`}>
-        <div>
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full border border-violet-200 bg-white/80" />
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-slate-400">{alt}</p>
+      <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 via-violet-50 to-slate-200 p-6 text-center ${className}`}>
+        <div className="rounded-3xl border border-violet-200 bg-white/80 p-5 shadow-sm">
+          <ImageOff className="mx-auto mb-4 text-violet-700" size={30} aria-hidden="true" />
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-800">Фото не загружено</p>
+          <p className="mt-2 line-clamp-3 text-xs font-black uppercase tracking-[0.16em] text-slate-600">{alt}</p>
         </div>
       </div>
     );
