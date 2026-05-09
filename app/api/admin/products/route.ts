@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { fallbackProducts } from '@/lib/fallbackProducts';
 import { getSupabaseAdmin } from '@/lib/supabase/server';
 import { mapSupabaseProduct, productSelect } from '@/lib/supabase/products';
 
@@ -47,7 +46,7 @@ async function replaceSizes(supabase: ReturnType<typeof getSupabaseAdmin>, produ
 
 export async function GET() {
   const supabase = getSupabaseAdmin();
-  if (!supabase) return NextResponse.json(fallbackProducts);
+  if (!supabase) return NextResponse.json([]);
   const { data, error } = await supabase.from('products').select(productSelect).is('deleted_at', null).order('id', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json((data || []).map(mapSupabaseProduct));
