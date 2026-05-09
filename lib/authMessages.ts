@@ -9,6 +9,7 @@ const dictionary = {
     emailTaken: 'Пользователь с такой почтой уже существует. Войдите или восстановите пароль.',
     otpSent: 'Мы отправили код подтверждения на почту. Введите его ниже.',
     otpInvalid: 'Неверный или просроченный код. Проверьте письмо и попробуйте ещё раз.',
+    emailRateLimit: 'Слишком много писем отправлено подряд. Подождите 1–2 минуты и попробуйте снова.',
     accountCreated: 'Аккаунт подтверждён. Сейчас откроем личный кабинет.',
     resetSent: 'Письмо для восстановления пароля отправлено на почту.',
     resetSaved: 'Пароль обновлён. Теперь можно войти.',
@@ -22,6 +23,7 @@ const dictionary = {
     emailTaken: 'Бұл пошта тіркелген. Кіріңіз немесе құпиясөзді қалпына келтіріңіз.',
     otpSent: 'Поштаңызға растау кодын жібердік. Кодты төменге енгізіңіз.',
     otpInvalid: 'Код қате немесе мерзімі өтті. Хатты тексеріп, қайта көріңіз.',
+    emailRateLimit: 'Қатарынан тым көп хат жіберілді. 1–2 минут күтіп, қайта көріңіз.',
     accountCreated: 'Аккаунт расталды. Қазір жеке кабинет ашылады.',
     resetSent: 'Құпиясөзді қалпына келтіру хаты поштаға жіберілді.',
     resetSaved: 'Құпиясөз жаңартылды. Енді кіре аласыз.',
@@ -35,6 +37,7 @@ export function authText(lang: Lang, key: keyof typeof dictionary.RU) {
 
 export function localizeAuthError(message: string | undefined, lang: Lang = 'RU') {
   const raw = (message || '').toLowerCase();
+  if (raw.includes('rate limit') || raw.includes('over_email_send_rate_limit') || raw.includes('email rate limit')) return authText(lang, 'emailRateLimit');
   if (raw.includes('invalid login') || raw.includes('invalid credentials')) return authText(lang, 'invalidLogin');
   if (raw.includes('email not confirmed')) return authText(lang, 'emailNotConfirmed');
   if (raw.includes('password') && (raw.includes('6') || raw.includes('weak'))) return authText(lang, 'weakPassword');
