@@ -7,12 +7,14 @@ import { authText, localizeAuthError } from '@/lib/authMessages';
 import { useApp } from '@/lib/context';
 import { getSupabaseBrowser } from '@/lib/supabase/client';
 
+const CODE_LENGTH = 6;
+
 const copy = {
   RU: {
-    cabinet: 'Личный кабинет', title: 'Регистрация', name: 'Имя', email: 'Email', phone: 'Телефон', password: 'Пароль от 6 символов', create: 'Получить код', creating: 'Отправляем код...', codeTitle: 'Подтверждение почты', codeText: 'Введите 6-значный код из письма. После подтверждения аккаунт будет создан.', code: 'Код из письма', confirm: 'Подтвердить', confirming: 'Проверяем...', resend: 'Отправить код ещё раз', hasAccount: 'Уже есть аккаунт?', login: 'Войти',
+    cabinet: 'Личный кабинет', title: 'Регистрация', name: 'Имя', email: 'Email', phone: 'Телефон', password: 'Пароль от 6 символов', create: 'Получить код', creating: 'Отправляем код...', codeTitle: 'Подтверждение почты', codeText: 'Введите 6-значный код из письма. После подтверждения аккаунт будет создан.', code: '000000', confirm: 'Подтвердить', confirming: 'Проверяем...', resend: 'Отправить код ещё раз', hasAccount: 'Уже есть аккаунт?', login: 'Войти',
   },
   KZ: {
-    cabinet: 'Жеке кабинет', title: 'Тіркелу', name: 'Аты', email: 'Email', phone: 'Телефон', password: '6 таңбадан бастап құпиясөз', create: 'Код алу', creating: 'Код жіберілуде...', codeTitle: 'Поштаны растау', codeText: 'Хаттағы 6 таңбалы кодты енгізіңіз. Расталғаннан кейін аккаунт жасалады.', code: 'Хаттағы код', confirm: 'Растау', confirming: 'Тексерілуде...', resend: 'Кодты қайта жіберу', hasAccount: 'Аккаунтыңыз бар ма?', login: 'Кіру',
+    cabinet: 'Жеке кабинет', title: 'Тіркелу', name: 'Аты', email: 'Email', phone: 'Телефон', password: '6 таңбадан бастап құпиясөз', create: 'Код алу', creating: 'Код жіберілуде...', codeTitle: 'Поштаны растау', codeText: 'Хаттағы 6 таңбалы кодты енгізіңіз. Расталғаннан кейін аккаунт жасалады.', code: '000000', confirm: 'Растау', confirming: 'Тексерілуде...', resend: 'Кодты қайта жіберу', hasAccount: 'Аккаунтыңыз бар ма?', login: 'Кіру',
   },
 };
 
@@ -95,9 +97,12 @@ export default function RegisterPage() {
         ) : (
           <form onSubmit={confirmCode} className="mt-8 space-y-4">
             <p className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-700">{l.codeText}</p>
-            <input required inputMode="numeric" maxLength={6} placeholder={l.code} value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} className="w-full rounded-2xl border border-slate-300 px-4 py-4 text-center text-2xl font-black tracking-[0.4em] outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100" />
+            <label className="block">
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Код подтверждения</span>
+              <input required inputMode="numeric" autoComplete="one-time-code" maxLength={CODE_LENGTH} placeholder={l.code} value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, CODE_LENGTH))} className="w-full rounded-3xl border border-violet-200 bg-violet-50/60 px-5 py-5 text-center text-3xl font-black tracking-[0.35em] text-black outline-none transition placeholder:text-slate-300 focus:border-violet-500 focus:bg-white focus:ring-4 focus:ring-violet-100" />
+            </label>
             {message && <p className="rounded-2xl bg-violet-50 p-4 text-sm font-bold text-violet-800">{message}</p>}
-            <button disabled={loading || code.length !== 6} className="w-full rounded-2xl bg-black py-4 text-xs font-black uppercase tracking-widest text-white transition hover:bg-violet-800 disabled:bg-slate-400">{loading ? l.confirming : l.confirm}</button>
+            <button disabled={loading || code.length !== CODE_LENGTH} className="w-full rounded-2xl bg-black py-4 text-xs font-black uppercase tracking-widest text-white transition hover:bg-violet-800 disabled:bg-slate-400">{loading ? l.confirming : l.confirm}</button>
             <button type="button" disabled={loading} onClick={() => startRegistration()} className="w-full rounded-2xl bg-slate-100 py-4 text-xs font-black uppercase tracking-widest text-slate-800 transition hover:bg-violet-50 disabled:opacity-50">{l.resend}</button>
           </form>
         )}
