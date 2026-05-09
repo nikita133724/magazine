@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { CheckoutPayload } from '@/lib/types';
+import { getRequestUser } from '@/lib/supabase/auth';
 import { getSupabaseAdmin } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -8,13 +9,18 @@ function makeOrderNumber() {
   return `THR-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 90 + 10)}`;
 }
 
-async function createSupabaseOrder(payload: CheckoutPayload, total: number, orderNumber: string) {
+async function createSupabaseOrder(payload: CheckoutPayload, total: number, orderNumber: string, request: Request) {
   const supabase = getSupabaseAdmin();
   if (!supabase) return null;
+  const user = await getRequestUser(request);
+
+  if (user?.id) {
+    await supabase.from('profiles').upsert({ id: user.id, email: user.email, full_name: payload.customerName, phone: payload.phone, city: payload.city });
+  }
 
   const { data: customer, error: customerError } = await supabase
     .from('customers')
-    .insert({ name: payload.customerName, phone: payload.phone, email: payload.email || null })
+    .insert({ user_id: user?.id || null, name: payload.customerName, phone: payload.phone, email: payload.email || user?.email || null })
     .select('id')
     .single();
 
@@ -23,11 +29,12 @@ async function createSupabaseOrder(payload: CheckoutPayload, total: number, orde
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
+      user_id: user?.id || null,
       order_number: orderNumber,
       customer_id: customer?.id || null,
       customer_name: payload.customerName,
       phone: payload.phone,
-      email: payload.email || null,
+      email: payload.email || user?.email || null,
       city: payload.city,
       address: payload.address,
       comment: payload.comment || null,
@@ -68,26 +75,12 @@ export async function POST(request: Request) {
   const orderNumber = makeOrderNumber();
 
   try {
-    const supabaseOrderId = await createSupabaseOrder(payload, total, orderNumber);
+    const supabaseOrderId = await createSupabaseOrder(payload, total, orderNumber, request);
     if (supabaseOrderId) return NextResponse.json({ ok: true, orderId: supabaseOrderId, orderNumber, persisted: true, database: 'supabase' });
   } catch (error) {
     console.warn('Supabase order failed:', error);
+    return NextResponse.json({ error: 'Не удалось сохранить заказ' }, { status: 500 });
   }
 
-  try {
-    const { default: db } = await import('@/lib/db');
-    const createOrder = db.transaction(() => {
-      db.prepare('INSERT INTO customers (name, phone, email) VALUES (?, ?, ?)').run(payload.customerName, payload.phone, payload.email || null);
-      const result = db.prepare('INSERT INTO orders (order_number, customer_name, phone, email, city, address, comment, total, payment_method, payment_status, order_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(orderNumber, payload.customerName, payload.phone, payload.email || null, payload.city, payload.address, payload.comment || null, total, payload.paymentMethod, 'pending', 'new');
-      const orderId = Number(result.lastInsertRowid);
-      const insertItem = db.prepare('INSERT INTO order_items (order_id, product_id, product_name, size, quantity, price, image) VALUES (?, ?, ?, ?, ?, ?, ?)');
-      for (const item of payload.items) insertItem.run(orderId, item.id, item.name, item.size || 'OS', item.quantity, item.price, item.image || null);
-      return orderId;
-    });
-    const orderId = createOrder();
-    return NextResponse.json({ ok: true, orderId, orderNumber, persisted: true, database: 'sqlite' });
-  } catch (error) {
-    console.warn('Order accepted without database:', error);
-    return NextResponse.json({ ok: true, orderId: null, orderNumber, persisted: false });
-  }
+  return NextResponse.json({ error: 'Supabase is not configured' }, { status: 500 });
 }
