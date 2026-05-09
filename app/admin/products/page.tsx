@@ -6,16 +6,18 @@ import type { Product } from '@/lib/types';
 
 const blank = { name_ru: '', name_kz: '', price: '', stock: '10', category_slug: 'apparel', sub_category_ru: '', sub_category_kz: '', sizes: 'S,M,L,XL', main_image: '', is_featured: false, is_bestseller: false, is_new: true, status: 'active' };
 
+type ProductForm = typeof blank;
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [form, setForm] = useState(blank);
+  const [form, setForm] = useState<ProductForm>(blank);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const load = () => fetch('/api/admin/products').then(r => r.json()).then(d => Array.isArray(d) && setProducts(d)).catch(console.error);
   useEffect(() => { load(); }, []);
-
-  const set = (key: string, value: string | boolean) => setForm(prev => ({ ...prev, [key]: value }));
+  const set = (key: keyof ProductForm, value: string | boolean) => setForm(prev => ({ ...prev, [key]: value }));
 
   const upload = async (file: File) => {
     const fd = new FormData();
@@ -27,16 +29,38 @@ export default function AdminProductsPage() {
     set('main_image', data.url);
   };
 
+  const edit = (p: Product) => {
+    setEditingId(p.id);
+    setForm({
+      name_ru: p.name_ru || p.name || '',
+      name_kz: p.name_kz || p.name_ru || p.name || '',
+      price: String(p.price || ''),
+      stock: String(p.stock || 0),
+      category_slug: p.category_slug || 'apparel',
+      sub_category_ru: p.sub_category_ru || p.sub_category || '',
+      sub_category_kz: p.sub_category_kz || p.sub_category_ru || p.sub_category || '',
+      sizes: p.sizes?.length ? p.sizes.map(s => s.size).join(',') : 'OS',
+      main_image: p.main_image || p.image_url || '',
+      is_featured: Boolean(p.is_featured),
+      is_bestseller: Boolean(p.is_bestseller),
+      is_new: Boolean(p.is_new),
+      status: p.status || 'active',
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
     setMessage('');
+    const method = editingId ? 'PATCH' : 'POST';
     try {
-      const res = await fetch('/api/admin/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, price: Number(form.price), stock: Number(form.stock) }) });
+      const res = await fetch('/api/admin/products', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, id: editingId, price: Number(form.price), stock: Number(form.stock) }) });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Не удалось добавить товар');
+      if (!res.ok) throw new Error(data.error || 'Не удалось сохранить товар');
       setForm(blank);
-      setMessage('Товар добавлен');
+      setEditingId(null);
+      setMessage(editingId ? 'Товар обновлен' : 'Товар добавлен');
       load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Ошибка');
@@ -45,15 +69,12 @@ export default function AdminProductsPage() {
     }
   };
 
-  const remove = async (id: number) => {
-    await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
-    load();
-  };
+  const remove = async (id: number) => { await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' }); load(); };
 
   return (
     <AdminShell title="Товары">
       <form onSubmit={submit} className="mb-6 rounded-[2rem] border border-violet-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-5 text-2xl font-black uppercase italic tracking-tighter">Добавить товар</h2>
+        <h2 className="mb-5 text-2xl font-black uppercase italic tracking-tighter">{editingId ? 'Редактировать товар' : 'Добавить товар'}</h2>
         <div className="grid gap-3 md:grid-cols-3">
           <input required placeholder="Название RU" value={form.name_ru} onChange={e => set('name_ru', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
           <input required placeholder="Название KZ" value={form.name_kz} onChange={e => set('name_kz', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
@@ -63,14 +84,15 @@ export default function AdminProductsPage() {
           <input placeholder="Подкатегория KZ" value={form.sub_category_kz} onChange={e => set('sub_category_kz', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
           <input placeholder="Остаток" value={form.stock} onChange={e => set('stock', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
           <input placeholder="Размеры через запятую" value={form.sizes} onChange={e => set('sizes', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3" />
+          <select value={form.status} onChange={e => set('status', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3"><option value="active">active</option><option value="draft">draft</option><option value="archived">archived</option></select>
           <input type="file" accept="image/*" onChange={e => e.target.files?.[0] && upload(e.target.files[0]).catch(err => setMessage(err.message))} className="rounded-2xl border border-slate-300 px-4 py-3" />
-          <input placeholder="URL картинки" value={form.main_image} onChange={e => set('main_image', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3 md:col-span-3" />
+          <input placeholder="URL картинки" value={form.main_image} onChange={e => set('main_image', e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-3 md:col-span-2" />
         </div>
         <div className="mt-4 flex flex-wrap gap-4 text-sm font-bold"><label><input type="checkbox" checked={form.is_new} onChange={e => set('is_new', e.target.checked)} /> Новинка</label><label><input type="checkbox" checked={form.is_bestseller} onChange={e => set('is_bestseller', e.target.checked)} /> Хит</label><label><input type="checkbox" checked={form.is_featured} onChange={e => set('is_featured', e.target.checked)} /> Рекомендуем</label></div>
         {message && <p className="mt-4 text-sm font-bold text-violet-800">{message}</p>}
-        <button disabled={loading} className="mt-5 rounded-2xl bg-black px-6 py-4 text-xs font-black uppercase tracking-widest text-white hover:bg-violet-800 disabled:bg-slate-400">{loading ? 'Сохраняем...' : 'Добавить товар'}</button>
+        <div className="mt-5 flex flex-wrap gap-3"><button disabled={loading} className="rounded-2xl bg-black px-6 py-4 text-xs font-black uppercase tracking-widest text-white hover:bg-violet-800 disabled:bg-slate-400">{loading ? 'Сохраняем...' : editingId ? 'Сохранить изменения' : 'Добавить товар'}</button>{editingId && <button type="button" onClick={() => { setEditingId(null); setForm(blank); }} className="rounded-2xl bg-slate-100 px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-800">Отмена</button>}</div>
       </form>
-      <div className="rounded-[2rem] bg-white p-6 shadow-sm"><h2 className="mb-5 text-2xl font-black uppercase italic tracking-tighter">Список товаров</h2><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead><tr className="text-slate-700"><th className="p-3">Название</th><th>Категория</th><th>Остаток</th><th>Цена</th><th>Статус</th><th></th></tr></thead><tbody>{products.map(p => <tr key={p.id} className="border-t"><td className="p-3 font-black">{p.name_ru || p.name}</td><td>{p.category_name}</td><td>{p.stock}</td><td>{p.price.toLocaleString()} ₸</td><td>{p.status}</td><td><button onClick={() => remove(p.id)} className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-red-700">Удалить</button></td></tr>)}</tbody></table></div></div>
+      <div className="rounded-[2rem] bg-white p-6 shadow-sm"><h2 className="mb-5 text-2xl font-black uppercase italic tracking-tighter">Список товаров</h2><div className="overflow-x-auto"><table className="w-full min-w-[820px] text-left text-sm"><thead><tr className="text-slate-700"><th className="p-3">Название</th><th>Категория</th><th>Остаток</th><th>Цена</th><th>Статус</th><th></th></tr></thead><tbody>{products.map(p => <tr key={p.id} className="border-t"><td className="p-3 font-black">{p.name_ru || p.name}</td><td>{p.category_name}</td><td>{p.stock}</td><td>{p.price.toLocaleString()} ₸</td><td>{p.status}</td><td className="flex gap-2 py-2"><button onClick={() => edit(p)} className="rounded-full bg-violet-50 px-4 py-2 text-xs font-black text-violet-800">Редактировать</button><button onClick={() => remove(p.id)} className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-red-700">Удалить</button></td></tr>)}</tbody></table></div></div>
     </AdminShell>
   );
 }
