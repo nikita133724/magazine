@@ -15,7 +15,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      <main>{children}</main>
+      <main className="pb-28 md:pb-0">{children}</main>
       <Footer />
       <MobileNav />
       <CartDrawer />
