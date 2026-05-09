@@ -174,9 +174,9 @@ with cats as (select id, slug from public.categories), seed_products as (
   ) as p(slug,name_ru,name_kz,description_ru,description_kz,price,compare_at_price,category_slug,sub_ru,sub_kz,img,stock,featured,bestseller,is_new)
 )
 insert into public.products (slug, name_ru, name_kz, description_ru, description_kz, price, compare_at_price, category_id, sub_category_ru, sub_category_kz, main_image, stock, status, is_featured, is_bestseller, is_new)
-select p.slug, p.name_ru, p.name_kz, p.description_ru, p.description_kz, p.price, p.compare_at_price, c.id, p.sub_ru, p.sub_kz, p.img, p.stock, 'active', p.featured, p.bestseller, p.is_new
+select p.slug, p.name_ru, p.name_kz, p.description_ru, p.description_kz, p.price::numeric, p.compare_at_price::numeric, c.id, p.sub_ru, p.sub_kz, p.img, p.stock::integer, 'active', p.featured::boolean, p.bestseller::boolean, p.is_new::boolean
 from seed_products p join cats c on c.slug = p.category_slug
-on conflict (slug) do update set name_ru = excluded.name_ru, name_kz = excluded.name_kz, description_ru = excluded.description_ru, description_kz = excluded.description_kz, price = excluded.price, category_id = excluded.category_id, sub_category_ru = excluded.sub_category_ru, sub_category_kz = excluded.sub_category_kz, main_image = excluded.main_image, stock = excluded.stock, status = 'active', is_featured = excluded.is_featured, is_bestseller = excluded.is_bestseller, is_new = excluded.is_new;
+on conflict (slug) do update set name_ru = excluded.name_ru, name_kz = excluded.name_kz, description_ru = excluded.description_ru, description_kz = excluded.description_kz, price = excluded.price, compare_at_price = excluded.compare_at_price, category_id = excluded.category_id, sub_category_ru = excluded.sub_category_ru, sub_category_kz = excluded.sub_category_kz, main_image = excluded.main_image, stock = excluded.stock, status = 'active', is_featured = excluded.is_featured, is_bestseller = excluded.is_bestseller, is_new = excluded.is_new;
 
 insert into public.product_images (product_id, image_url, alt_ru, alt_kz, sort_order)
 select p.id, p.main_image, p.name_ru, p.name_kz, 0 from public.products p
