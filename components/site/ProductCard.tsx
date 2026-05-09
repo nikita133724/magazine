@@ -5,6 +5,7 @@ import { ShoppingBag, Star } from 'lucide-react';
 import { useApp } from '@/lib/context';
 import type { Product } from '@/lib/types';
 import ProductImage from './ProductImage';
+import WishlistButton from './WishlistButton';
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart, t } = useApp();
@@ -15,6 +16,7 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <article className="group min-w-0">
       <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-100 bg-slate-50 shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-2xl group-hover:shadow-violet-100">
+        <WishlistButton productId={product.id} />
         <Link href={productHref} className="block aspect-[3/4] overflow-hidden"><ProductImage src={image} alt={product.name} className="transition duration-700 group-hover:scale-105" /></Link>
         <button onClick={() => addToCart({ id: product.id, slug: product.slug, name: product.name, price: product.price, image, size: firstSize })} className="absolute inset-x-3 bottom-3 rounded-2xl bg-black px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white opacity-0 transition hover:bg-violet-700 group-hover:opacity-100"><ShoppingBag className="mr-2 inline" size={14} />{t('add_to_cart')}</button>
       </div>
