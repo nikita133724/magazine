@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import ProductImage from '@/components/site/ProductImage';
 import { useApp } from '@/lib/context';
+import { getSupabaseBrowser } from '@/lib/supabase/client';
 
 const labels = {
-  RU: { back: 'Назад в каталог', tag: 'Оформление', title: 'Данные заказа', name: 'Имя', phone: 'Телефон', email: 'Email', city: 'Город', address: 'Адрес', comment: 'Комментарий', payment: 'Оплата', paymentText: 'Оплата при получении. Kaspi и карта будут подключены позже.', empty: 'Корзина пустая', error: 'Не удалось оформить заказ', creating: 'Создаём заказ...', submit: 'Оформить заказ', order: 'Ваш заказ', total: 'Итого' },
-  KZ: { back: 'Каталогқа қайту', tag: 'Тапсырыс', title: 'Тапсырыс деректері', name: 'Аты', phone: 'Телефон', email: 'Email', city: 'Қала', address: 'Мекенжай', comment: 'Пікір', payment: 'Төлем', paymentText: 'Алған кезде төлеу. Kaspi және карта кейін қосылады.', empty: 'Себет бос', error: 'Тапсырысты рәсімдеу мүмкін болмады', creating: 'Тапсырыс жасалуда...', submit: 'Тапсырыс беру', order: 'Сіздің тапсырысыңыз', total: 'Жиыны' },
+  RU: { back: 'Назад в каталог', tag: 'Оформление', title: 'Данные заказа', name: 'Имя', phone: 'Телефон', email: 'Email', city: 'Город', address: 'Адрес', comment: 'Комментарий', payment: 'Оплата', paymentText: 'Оплата при получении. Kaspi и карта будут подключены позже.', empty: 'Корзина пустая', error: 'Не удалось оформить заказ', creating: 'Создаём заказ...', submit: 'Оформить заказ', order: 'Ваш заказ', total: 'Итого', accountHint: 'Войдите в аккаунт, чтобы заказ сохранился в личном кабинете.' },
+  KZ: { back: 'Каталогқа қайту', tag: 'Тапсырыс', title: 'Тапсырыс деректері', name: 'Аты', phone: 'Телефон', email: 'Email', city: 'Қала', address: 'Мекенжай', comment: 'Пікір', payment: 'Төлем', paymentText: 'Алған кезде төлеу. Kaspi және карта кейін қосылады.', empty: 'Себет бос', error: 'Тапсырысты рәсімдеу мүмкін болмады', creating: 'Тапсырыс жасалуда...', submit: 'Тапсырыс беру', order: 'Сіздің тапсырысыңыз', total: 'Жиыны', accountHint: 'Тапсырыс жеке кабинетте сақталуы үшін аккаунтқа кіріңіз.' },
 };
 
 export default function CheckoutPage() {
@@ -17,7 +18,32 @@ export default function CheckoutPage() {
   const l = labels[lang];
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false);
   const [form, setForm] = useState({ customerName: '', phone: '', email: '', city: 'Алматы', address: '', comment: '', deliveryMethod: 'courier', paymentMethod: 'cash_on_delivery' });
+
+  useEffect(() => {
+    let ignore = false;
+    async function loadAccount() {
+      const supabase = getSupabaseBrowser();
+      const session = await supabase?.auth.getSession();
+      const token = session?.data.session?.access_token;
+      const email = session?.data.session?.user.email || '';
+      if (!token) return;
+      setLoggedIn(true);
+      const res = await fetch('/api/account/profile', { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok || ignore) return;
+      const data = await res.json();
+      const profile = data.profile || {};
+      setForm(prev => ({ ...prev, customerName: profile.full_name || prev.customerName, phone: profile.phone || prev.phone, email: profile.email || email || prev.email, city: profile.city || prev.city }));
+      const addressRes = await fetch('/api/account/addresses', { headers: { Authorization: `Bearer ${token}` } });
+      if (!addressRes.ok || ignore) return;
+      const addresses = await addressRes.json();
+      const address = Array.isArray(addresses) ? addresses.find((item: any) => item.is_default) || addresses[0] : null;
+      if (address) setForm(prev => ({ ...prev, city: address.city || prev.city, address: address.address || prev.address }));
+    }
+    loadAccount().catch(console.error);
+    return () => { ignore = true; };
+  }, []);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -25,7 +51,12 @@ export default function CheckoutPage() {
     if (cart.length === 0) { setError(l.empty); return; }
     setLoading(true);
     try {
-      const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, items: cart }) });
+      const supabase = getSupabaseBrowser();
+      const session = await supabase?.auth.getSession();
+      const token = session?.data.session?.access_token;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const response = await fetch('/api/orders', { method: 'POST', headers, body: JSON.stringify({ ...form, items: cart }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || l.error);
       clearCart();
@@ -45,6 +76,7 @@ export default function CheckoutPage() {
           <form onSubmit={handleSubmit} className="rounded-[2rem] bg-white p-5 shadow-sm md:p-8">
             <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-800">{l.tag}</p>
             <h1 className="mb-8 text-4xl font-black uppercase italic tracking-tighter md:text-6xl">{l.title}</h1>
+            {!loggedIn && <Link href="/login" className="mb-5 block rounded-3xl border border-violet-200 bg-violet-50 p-4 text-sm font-bold text-violet-900">{l.accountHint}</Link>}
             <div className="grid gap-4 md:grid-cols-2">
               <input required aria-label={l.name} placeholder={l.name} value={form.customerName} onChange={e => setForm(p => ({ ...p, customerName: e.target.value }))} className="rounded-2xl border border-slate-300 px-4 py-4 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100" />
               <input required aria-label={l.phone} placeholder={l.phone} value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="rounded-2xl border border-slate-300 px-4 py-4 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100" />
