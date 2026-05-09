@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
-import { fallbackProducts } from '@/lib/fallbackProducts';
 import { getSupabaseAdmin } from '@/lib/supabase/server';
 import { mapSupabaseProduct, productSelect } from '@/lib/supabase/products';
 
 export const dynamic = 'force-dynamic';
 
-async function getSupabaseProducts() {
+export async function GET() {
   const supabase = getSupabaseAdmin();
-  if (!supabase) return null;
+
+  if (!supabase) {
+    return NextResponse.json({ error: 'Supabase is not configured', products: [] }, { status: 500 });
+  }
 
   const { data, error } = await supabase
     .from('products')
@@ -18,24 +20,6 @@ async function getSupabaseProducts() {
     .order('is_new', { ascending: false })
     .order('id', { ascending: true });
 
-  if (error) throw error;
-  return (data || []).map(mapSupabaseProduct);
-}
-
-export async function GET() {
-  try {
-    const supabaseProducts = await getSupabaseProducts();
-    if (supabaseProducts && supabaseProducts.length > 0) return NextResponse.json(supabaseProducts);
-  } catch (error) {
-    console.warn('Supabase products unavailable:', error);
-  }
-
-  try {
-    const { getProducts } = await import('@/lib/catalog');
-    const products = getProducts();
-    return NextResponse.json(products.length ? products : fallbackProducts);
-  } catch (error) {
-    console.warn('Using fallback products because database is unavailable:', error);
-    return NextResponse.json(fallbackProducts);
-  }
+  if (error) return NextResponse.json({ error: error.message, products: [] }, { status: 500 });
+  return NextResponse.json((data || []).map(mapSupabaseProduct));
 }
