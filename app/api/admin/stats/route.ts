@@ -9,10 +9,19 @@ const empty = {
   lowStock: [],
   topProducts: [],
   recentOrders: [],
+  missingImages: [],
 };
 
 function sum(items: any[], key: string) {
   return items.reduce((acc, item) => acc + Number(item[key] || 0), 0);
+}
+
+function lastDays(count = 7) {
+  return Array.from({ length: count }).map((_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (count - 1 - index));
+    return date.toISOString().slice(0, 10);
+  });
 }
 
 export async function GET() {
@@ -21,7 +30,7 @@ export async function GET() {
 
   const [ordersResult, productsResult, customersResult, itemsResult] = await Promise.all([
     supabase.from('orders').select('id, order_number, customer_name, total, payment_status, order_status, created_at').order('created_at', { ascending: false }),
-    supabase.from('products').select('id, name_ru, stock, status').is('deleted_at', null).order('stock', { ascending: true }),
+    supabase.from('products').select('id, name_ru, main_image, stock, status').is('deleted_at', null).order('stock', { ascending: true }),
     supabase.from('customers').select('id, name, phone, email, created_at').order('created_at', { ascending: false }),
     supabase.from('order_items').select('product_name, quantity, price'),
   ]);
@@ -35,12 +44,13 @@ export async function GET() {
   const totalRevenue = sum(orders, 'total');
 
   const dayMap = new Map<string, { day: string; revenue: number; orders: number }>();
+  for (const day of lastDays(7)) dayMap.set(day, { day, revenue: 0, orders: 0 });
   for (const order of orders) {
-    const day = String(order.created_at || '').slice(0, 10) || 'unknown';
-    const current = dayMap.get(day) || { day, revenue: 0, orders: 0 };
+    const day = String(order.created_at || '').slice(0, 10);
+    if (!dayMap.has(day)) continue;
+    const current = dayMap.get(day)!;
     current.revenue += Number(order.total || 0);
     current.orders += 1;
-    dayMap.set(day, current);
   }
 
   const productMap = new Map<string, { product_name: string; quantity: number; revenue: number }>();
@@ -61,8 +71,9 @@ export async function GET() {
       avgOrder: orders.length ? totalRevenue / orders.length : 0,
     },
     recentOrders: orders.slice(0, 8),
-    revenueByDay: Array.from(dayMap.values()).sort((a, b) => a.day.localeCompare(b.day)).slice(-14),
+    revenueByDay: Array.from(dayMap.values()),
     lowStock: products.filter(product => Number(product.stock || 0) <= 5).slice(0, 8),
+    missingImages: products.filter(product => !product.main_image).slice(0, 8),
     topProducts: Array.from(productMap.values()).sort((a, b) => b.quantity - a.quantity).slice(0, 8),
   });
 }
